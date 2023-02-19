@@ -1,3 +1,4 @@
+use std::f32::consts::PI;
 use std::io;
 use rand::prelude::*;
 use std::time::{Instant};
@@ -5,12 +6,15 @@ use std::thread;
 use std::sync::mpsc;
 use std::fs::OpenOptions;
 use std::io::{Write};
+use std::str::FromStr;
+use strum_macros::EnumString;
 
 #[derive(Copy, Clone)]
-#[derive(PartialEq)]
+#[derive(PartialEq, EnumString)]
 enum Func {
     normal,
     quadratic,
+    sine
 }
 
 fn main() {
@@ -18,6 +22,7 @@ fn main() {
     println!("Hi! Please select a function to analyze:");
     println!("n: e^(-x^2)");
     println!("q: x^2");
+    println!("s: sin(x)");
 
     let mut f_input = String::new();
     io::stdin() // save terminal input to the input String object
@@ -25,13 +30,31 @@ fn main() {
         .expect("Failed to read line");
 
     let func: Func;
-    if f_input == "n" {
+    
+    if f_input.trim() == "n".to_string() {
         func = Func::normal;
-    } else if f_input == "q" {
+    } else if f_input.trim() == "q".to_string() {
         func = Func::quadratic;
+    } else if f_input.trim() == "s".to_string() {
+        func = Func::sine;
     } else {
         func = Func::quadratic;
     }
+    //func = Func::from_str(f_input.trim()).unwrap();
+
+    let f_desc: String;
+    if func == Func::normal {
+        f_desc = "e^(-(x^2))".to_string();
+    } else if func == Func::quadratic {
+        f_desc = "x^2".to_string();
+    } else if func == Func::sine {
+        f_desc = "sin(x)".to_string();
+    } else {
+        f_desc = "x^2".to_string();
+    }
+
+    println!("");
+    println!("Selected function: {f_desc}");
     println!("");
 
     println!("Please enter the number of trapezoids to generate."); // prompt to request user input
@@ -90,11 +113,30 @@ fn main() {
     let now = Instant::now(); // save the current 'instant'; used to calculate the runtime of the program
     
     // Integration
-    let min = 0.0;
+    let mut min = 0.0;
     let max:f64;
 
     if a < 0.0 && b > 0.0 && func == Func::normal {
         max = 1.0;
+    } else if func == Func::sine {
+        if b - a >= 2.0 * f64::from(PI) {
+            min = -1.0;
+            max = 1.0;
+        } else {
+            let f_a = f(a, Func::sine);
+            let f_b = f(b, Func::sine);
+
+            if f_a >= 0.0 && f_b >= 0.0 {
+                min = 0.0;
+                max = max_of_f(a, b, func);
+            } else if f_a <= 0.0 && f_b <= 0.0 {
+                max = 0.0;
+                min = min_of_f(a, b, func);
+            } else {
+                min = min_of_f(a, b, func);
+                max = max_of_f(a, b, func);
+            }
+        }
     } else if f(a, func) > f(b, func) {
         max = f(a, func);
     } else {
@@ -135,15 +177,6 @@ fn main() {
     }
 
     println!("");
-
-    let f_desc: String;
-    if func == Func::normal {
-        f_desc = "e^(-(x^2))".to_string();
-    } else if func == Func::quadratic {
-        f_desc = "x^2".to_string();
-    } else {
-        f_desc = "x^2".to_string();
-    }
 
     for received in rx { // for each value that the rx Receiver<f64> gets from the tx Sender<f64> object, store it to the received constant (an f64)
         mc_res.push(received); // save the received value to the mc_res Vec<f64>
@@ -214,7 +247,8 @@ fn f(x: f64, func: Func) -> f64 {
     let e = 2.71828182845904523536028747135266250f64;
     match func {
         Func::normal => res = e.powf(-1.0 * x.powf(2.0)),
-        Func::quadratic => res = x * x
+        Func::quadratic => res = x * x,
+        Func::sine => res = x.sin()
     }
     
     //return e^(-x^2.0);
@@ -225,18 +259,21 @@ fn generate_area_mc(points_tot: i32, min: f64, max:f64, a: f64, b: f64, func: Fu
     let mut rng = rand::thread_rng(); // the thread random number generator
 
     let mut i = 1; // index to count the number of generated points
-        let mut points_in: f64 = 0.0; // variable to count the number of points that are within the circle
+        let mut points_in_pos: f64 = 0.0; // variable to count the number of points that are within the function
+        let mut points_in_neg: f64 = 0.0;
         while i <= points_tot { // repeat until all points have been generated
             let x: f64 = rng.gen_range(a..=b); // generate x coordinate
             let y: f64 = rng.gen_range(min..=max); // generate y coordinate
 
-            if y <= f(x, func) { // test if the point is within the circle
-                points_in += 1.0; // if so, add 1 to the counter of the points within the circle
+            if y > 0.0 && y <= f(x, func) { // test if the point is within the function
+                points_in_pos += 1.0; // if so, add 1 to the counter of the points within the function
+            } else if y < 0.0 && y >= f(x, func) {
+                points_in_neg += 1.0;
             }
             i += 1; // add 1 to the counter of the generated points
         }
 
-        let area: f64 = points_in / f64::from(points_tot) * (b - a) * (max - min); // calculate the π value
+        let area: f64 = (points_in_pos - points_in_neg) / f64::from(points_tot) * (b - a) * (max - min); // calculate the area value
         return area; // return the generated area value
 }
 
@@ -250,13 +287,63 @@ fn calc_area_trap(traps: i32, a: f64, b: f64, func: Func) -> f64 {
     let mut area = 0.0;
 
     while i <= traps {
-        let trap = delta_x * (f(a + delta_x * f64::from(i - 1), func) + f(a + delta_x * f64::from(i), func)) / 2.0;
+        let f1 = f(a + delta_x * f64::from(i - 1), func);
+        let f2 = f(a + delta_x * f64::from(i), func);
+        let mut trap = (delta_x * (f1 + f2) / 2.0).abs();
+        
+        if f1 < 0.0 && f2 < 0.0 {
+            trap *= -1.0;
+        }
 
-        area += trap.abs();
+        area += trap;
         i += 1;
     }
 
     return area;
+}
+
+fn max_of_f(a: f64, b: f64, func: Func) -> f64 {
+    let n = 10000;
+    let mut i = 1;
+
+    let range = b - a;
+    let delta_x = range / f64::from(n);
+
+    let mut max = -100000000000.0;
+
+    while i <= n {
+        let f_i = f(a + delta_x * f64::from(i - 1), func);
+
+        if f_i > max {
+            max = f_i;
+        }
+
+        i += 1;
+    }
+
+    return max * 1.05;
+}
+
+fn min_of_f(a: f64, b: f64, func: Func) -> f64 {
+    let n = 10000;
+    let mut i = 1;
+
+    let range = b - a;
+    let delta_x = range / f64::from(n);
+
+    let mut min = 100000000000.0;
+
+    while i <= n {
+        let f_i = f(a + delta_x * f64::from(i - 1), func);
+
+        if f_i < min {
+            min = f_i;
+        }
+
+        i += 1;
+    }
+
+    return min * 1.05;
 }
 
 // function to calculate the mean of a 'slice' (a part) of a Vec<f64>, returns an 'optional' f64
