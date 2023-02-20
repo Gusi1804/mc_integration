@@ -6,15 +6,18 @@ use std::thread;
 use std::sync::mpsc;
 use std::fs::OpenOptions;
 use std::io::{Write};
-use std::str::FromStr;
+// use std::str::FromStr;
 use strum_macros::EnumString;
+use std::process;
+// use std::num::sqrt;
 
 #[derive(Copy, Clone)]
 #[derive(PartialEq, EnumString)]
 enum Func {
-    normal,
-    quadratic,
-    sine
+    Normal,
+    Quadratic,
+    Sine,
+    SqrtSine
 }
 
 fn main() {
@@ -23,6 +26,7 @@ fn main() {
     println!("n: e^(-x^2)");
     println!("q: x^2");
     println!("s: sin(x)");
+    println!("sqs: sqrt(sin(x))");
 
     let mut f_input = String::new();
     io::stdin() // save terminal input to the input String object
@@ -32,23 +36,27 @@ fn main() {
     let func: Func;
     
     if f_input.trim() == "n".to_string() {
-        func = Func::normal;
+        func = Func::Normal;
     } else if f_input.trim() == "q".to_string() {
-        func = Func::quadratic;
+        func = Func::Quadratic;
     } else if f_input.trim() == "s".to_string() {
-        func = Func::sine;
+        func = Func::Sine;
+    } else if f_input.trim() == "sqs".to_string() {
+        func = Func::SqrtSine;
     } else {
-        func = Func::quadratic;
+        func = Func::Quadratic;
     }
     //func = Func::from_str(f_input.trim()).unwrap();
 
     let f_desc: String;
-    if func == Func::normal {
+    if func == Func::Normal {
         f_desc = "e^(-(x^2))".to_string();
-    } else if func == Func::quadratic {
+    } else if func == Func::Quadratic {
         f_desc = "x^2".to_string();
-    } else if func == Func::sine {
+    } else if func == Func::Sine {
         f_desc = "sin(x)".to_string();
+    } else if func == Func::SqrtSine {
+        f_desc = "sqrt(sin(x))".to_string();
     } else {
         f_desc = "x^2".to_string();
     }
@@ -116,15 +124,15 @@ fn main() {
     let mut min = 0.0;
     let max:f64;
 
-    if a < 0.0 && b > 0.0 && func == Func::normal {
+    if a < 0.0 && b > 0.0 && func == Func::Normal {
         max = 1.0;
-    } else if func == Func::sine {
+    } else if func == Func::Sine {
         if b - a >= 2.0 * f64::from(PI) {
             min = -1.0;
             max = 1.0;
         } else {
-            let f_a = f(a, Func::sine);
-            let f_b = f(b, Func::sine);
+            let f_a = f(a, Func::Sine);
+            let f_b = f(b, Func::Sine);
 
             if f_a >= 0.0 && f_b >= 0.0 {
                 min = 0.0;
@@ -136,6 +144,22 @@ fn main() {
                 min = min_of_f(a, b, func);
                 max = max_of_f(a, b, func);
             }
+        }
+    } else if func == Func::SqrtSine {
+        if b - a < f64::from(PI) {
+            let pi_mult_min = (a / (2.0 * f64::from(PI))).floor() * 2.0 * f64::from(PI);
+            let pi_mult_max = pi_mult_min + f64::from(PI);
+
+            if a >= pi_mult_min && b <= pi_mult_max {
+                min = min_of_f(a, b, func);
+                max = max_of_f(a, b, func);
+            } else {
+                println!("Invalid input for the function! Please try again.");
+                process::abort();
+            }
+        } else {
+            println!("Invalid input for the function! Please try again.");
+            process::abort();
         }
     } else if f(a, func) > f(b, func) {
         max = f(a, func);
@@ -246,9 +270,10 @@ fn f(x: f64, func: Func) -> f64 {
 
     let e = 2.71828182845904523536028747135266250f64;
     match func {
-        Func::normal => res = e.powf(-1.0 * x.powf(2.0)),
-        Func::quadratic => res = x * x,
-        Func::sine => res = x.sin()
+        Func::Normal => res = e.powf(-1.0 * x.powf(2.0)),
+        Func::Quadratic => res = x * x,
+        Func::Sine => res = x.sin(),
+        Func::SqrtSine => res = (x.sin()).sqrt()
     }
     
     //return e^(-x^2.0);
