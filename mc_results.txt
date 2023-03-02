@@ -103,3 +103,23 @@ Mean: 2.39616874343513, SE: 0.0008521978527564383, STDEV: 0.04667679874121674, f
 Mean: 2.396403938769161, SE: 0.00026830368767748766, STDEV: 0.04647156189155003, f: sqrt(sin(x)), a: 0, b: 3.141592653589793, n: 30000, points: 1000, t: 32 s
 // x^2
 Mean: 17.99917199999997, SE: 0.024579555670780018, STDEV: 0.7772737979457265, f: x^2, a: -3, b: 3, n: 1000, points: 1000, t: 0 s
+// x^2, changing traps
+Mean: NaN, SE: NaN, STDEV: NaN, f: x^2, a: -3, b: 3, n: 1000, points: 0, t: 0 s
+Mean: NaN, SE: NaN, STDEV: NaN, f: x^2, a: -3, b: 3, n: 1000, points: 0, t: 0 s
+Mean: NaN, SE: NaN, STDEV: NaN, f: x^2, a: -3, b: 3, n: 1000, points: 0, t: 0 s
+Mean: NaN, SE: NaN, STDEV: NaN, f: x^2, a: -3, b: 3, n: 1000, points: 0, t: 0 s
+Mean: NaN, SE: NaN, STDEV: NaN, f: x^2, a: -3, b: 3, n: 1000, points: 0, t: 0 s
+Mean: NaN, SE: NaN, STDEV: NaN, f: x^2, a: -3, b: 3, n: 1000, points: 0, t: 0 s
+Mean: NaN, SE: NaN, STDEV: NaN, f: x^2, a: -3, b: 3, n: 100, points: 0, t: 0 s
+Mean: NaN, SE: NaN, STDEV: NaN, f: x^2, a: -3, b: 3, n: 100, points: 0, t: 0 s
+Mean: NaN, SE: NaN, STDEV: NaN, f: x^2, a: -3, b: 3, n: 100, points: 0, t: 0 s
+Mean: NaN, SE: NaN, STDEV: NaN, f: x^2, a: -3, b: 3, n: 100, points: 0, t: 0 s
+Mean: NaN, SE: NaN, STDEV: NaN, f: x^2, a: -3, b: 3, n: 10, points: 0, t: 0 s
+Mean: NaN, SE: NaN, STDEV: NaN, f: x^2, a: -3, b: 3, n: 10, points: 0, t: 0 s
+Mean: NaN, SE: NaN, STDEV: NaN, f: x^2, a: -3, b: 3, n: 10, points: 0, t: 0 s
+Mean: NaN, SE: NaN, STDEV: NaN, f: x^2, a: -3, b: 3, n: 10, points: 0, t: 0 s
+Mean: NaN, SE: NaN, STDEV: NaN, f: x^2, a: -3, b: 3, n: 10, points: 0, t: 0 s
+Mean: NaN, SE: NaN, STDEV: NaN, f: x^2, a: -3, b: 3, n: 10, points: 0, t: 0 s
+Mean: NaN, SE: NaN, STDEV: NaN, f: x^2, a: -3, b: 3, n: 10, points: 0, t: 0 s
+Mean: NaN, SE: NaN, STDEV: NaN, f: x^2, a: -3, b: 3, n: 10, points: 0, t: 0 s
+Mean: NaN, SE: NaN, STDEV: NaN, f: x^2, a: -3, b: 3, n: 10, points: 0, t: 2 s

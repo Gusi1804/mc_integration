@@ -302,7 +302,12 @@ fn main() {
 
     println!("–––––––––––––––––––––");
 
+    println!("Press any key to terminate the program and close the window.");
 
+    let mut wait_i = String::new();
+    io::stdin() // save terminal input to the input String object
+        .read_line(&mut wait_i)
+        .expect("Failed to read line");
 }
 
 fn f(x: f64, func: Func) -> f64 {
